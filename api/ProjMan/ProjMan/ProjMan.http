@@ -1,6 +1,0 @@
-@ProjMan_HostAddress = http://localhost:5027
-
-GET {{ProjMan_HostAddress}}/weatherforecast/
-Accept: application/json
-
-###
