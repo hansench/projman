@@ -16,4 +16,13 @@ public static class StringHelper
     {
         return $@"""{input}""";
     }
+
+
+    public static string CapitalizeFirstChar(this string input)
+    {
+        if (string.IsNullOrWhiteSpace(input)) return input;
+
+        input = input.Trim();
+        return input[0].ToString().ToUpperInvariant() + input.Substring(1);
+    }
 }

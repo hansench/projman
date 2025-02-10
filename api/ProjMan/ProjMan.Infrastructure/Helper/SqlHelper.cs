@@ -52,6 +52,6 @@ public static class SqlHelper
             order = "DESC";
         }
 
-        return $"{sortField.Enquote()} {order}";
+        return $"{sortField.CapitalizeFirstChar().Enquote()} {order}";
     }
 }

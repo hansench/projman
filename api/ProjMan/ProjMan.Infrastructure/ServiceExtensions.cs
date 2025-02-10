@@ -21,5 +21,6 @@ public static class ServiceExtensions
 
         services.AddTransient<IAuthRepository, AuthRepository>();
         services.AddTransient<IProjectRepository, ProjectRepository>();
+        services.AddTransient<ISelectRepository, SelectRepository>();
     }
 }

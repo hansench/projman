@@ -20,6 +20,31 @@ const dtParams = ref({
     sortOrder: 1
 });
 
+
+const handleSearchChange = () => {
+    search.value = search.value.trim();
+    if (search.value) {
+        fetchList();
+    } else {
+        dtParams.value.page = 1;
+        fetchList();
+    }
+}
+
+const handlePageChange = (event) => {
+    dtParams.value.page = event.page + 1;
+
+    fetchList();
+};
+
+const handleSortChange = (event) => {
+    dtParams.value.sortField = event.sortField;
+    dtParams.value.sortOrder = event.sortOrder;
+
+    fetchList();
+};
+
+
 const fetchList = () => {
     if (loading.value) return;
 
@@ -111,15 +136,21 @@ const editProject = id => {
         <DataTable lazy ref="dt" :value="list" dataKey="id" :loading="loading"
             paginator :rows="10" :totalRecords="rowTotal"
             sortMode="single" :sortOrder="dtParams.sortOrder" :sortField="dtParams.sortField"
+            @page="handlePageChange($event)" @sort="handleSortChange($event)"
+            scrollable scrollHeight="flex" selectionMode="single"
             rowHover stripedRows showGridlines>
             <template #header>
                 <div class="flex justify-between">
-                    <IconField>
-                        <InputIcon>
-                            <i class="pi pi-search" />
-                        </InputIcon>
-                        <InputText v-model="search" placeholder="Keyword Search" />
-                    </IconField>
+                    <Button type="button" icon="pi pi-globe" label="Add Project" outlined @click="addProject()" />
+                    <form @submit.prevent="handleSearchChange">
+                        <IconField>
+                            <InputIcon>
+                                <i class="pi pi-search" />
+                            </InputIcon>
+                            <InputText v-model="search" placeholder="Keyword Search" />
+                            <Message severity="info" size="small" variant="simple">Type your keywords and hit Enter</Message>
+                        </IconField>
+                    </form>
                 </div>
             </template>
             <template #empty> No project found. </template>
@@ -162,5 +193,5 @@ const editProject = id => {
         </DataTable>
     </div>
 
-    <ProjectEditDialog v-model:isDialogVisible="isEditDialogVisible" :dialog-title="dialogTitle" :projectData="projectData" />
+    <ProjectEditDialog v-model:isDialogVisible="isEditDialogVisible" :dialog-title="dialogTitle" :projectData="projectData" @submit="fetchList" />
 </template>

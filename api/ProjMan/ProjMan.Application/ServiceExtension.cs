@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using ProjMan.Application.Validation;
+using ProjMan.Application.Behavior;
 using System.Reflection;
 
 namespace ProjMan.Application;
@@ -15,6 +15,7 @@ public static class ServiceExtension
         {
             cfg.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly());
             cfg.AddOpenBehavior(typeof(ValidationPipelineBehavior<,>));
+            cfg.AddOpenBehavior(typeof(CachingBehavior<,>));
         });
     }
 }

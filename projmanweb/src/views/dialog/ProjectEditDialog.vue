@@ -1,10 +1,11 @@
 <script setup>
 import { useAlertStore } from "@/stores/alert.store";
 import { useProjectStore } from "@/stores/project.store";
-import { computed, defineProps, ref, toRaw, watch } from 'vue';
-// import { useSelectListStore } from "@/stores/select-list.store"
+import { useSelectListStore } from "@/stores/selectlist.store";
 import { useForm, useIsFormDirty, useIsFormValid } from 'vee-validate';
+import { computed, defineProps, onMounted, ref, toRaw, watch } from 'vue';
 import * as Yup from 'yup';
+import moment from "moment";
 
 const props = defineProps({
     projectData: {
@@ -37,31 +38,7 @@ const emit = defineEmits([
   'update:isDialogVisible',
 ])
 
-const alertStore = useAlertStore();
-const projectStore = useProjectStore();
-// const selectListStore = useSelectListStore();
-
-const isDirty = useIsFormDirty();
-const isValid = useIsFormValid();
-
-const isEnableSubmit = computed(() => {
-  return isDirty && isValid
-})
-
-const isDisabled = computed(() => {
-  return !isEnableSubmit
-})
-
-const loading = ref(false);
-const projectData = ref(structuredClone(toRaw(props.projectData)));
-const isEdit = ref(true);
-const stageSelectList = ref([]);
-const categorySelectList = ref([
-    { id: 1, name: 'Category 1' },
-    { id: 2, name: 'Category 2' },
-    { id: 3, name: 'Category 3' },
-    { id: 4, name: 'Others' },
-]);
+const yesterday = new Date(Date.now() -86400000);
 
 const schema = Yup.object().shape({
     projectName: Yup.string()
@@ -89,7 +66,7 @@ const schema = Yup.object().shape({
         .label('Category Others Description')
         .when('categoryId', {
             is: 4,
-            then: () => Yup.string()
+            then: () => Yup.string().label('Category Others Description')
                 .required((data) => `${data.label} is required`)
                 .min(3, (data) => `${data.label} must be at least ${data.min} characters`)
                 .max(200, (data) => `${data.label} must be at most ${data.max} characters`),
@@ -101,14 +78,63 @@ const schema = Yup.object().shape({
         .when('stageId', {
             is: 4,
             then: () => Yup.date(),
-            otherwise: () => Yup.date()
-                .min(new Date(), (data) => `${data.label} must be greater than today`)
+            otherwise: () => Yup.date().label('Start Date')
+                .min(yesterday, (data) => `${data.label} cannot be in the past`)
         })
 })
 
 const { defineField, setFieldValue, handleSubmit, errors, isSubmitting, resetForm } = useForm({
   validationSchema: schema,
 })
+
+const isDirty = useIsFormDirty();
+const isValid = useIsFormValid();
+
+const isEnableSubmit = computed(() => {
+  return isDirty && isValid
+})
+
+const isDisabled = computed(() => {
+  return !isEnableSubmit
+})
+
+const alertStore = useAlertStore();
+const projectStore = useProjectStore();
+const selectListStore = useSelectListStore();
+
+const loading = ref(false);
+const projectData = ref(structuredClone(toRaw(props.projectData)));
+const isEdit = ref(true);
+const stageSelectList = ref([]);
+const categorySelectList = ref([]);
+
+const fetchStageSelectList = () => {
+  selectListStore.fetchStageSelectList(). then(response => {
+    let data = response.data
+    if (data.ok) {
+      stageSelectList.value = response.data.data
+    }
+    else {
+      console.log(data.message)
+    }
+  }). catch(error => {
+    console.log(error)
+  })
+}
+
+const fetchCategorySelectList = () => {
+  selectListStore.fetchCategorySelectList(). then(response => {
+    let data = response.data
+    if (data.ok) {
+      categorySelectList.value = response.data.data
+    }
+    else {
+      console.log(data.message)
+    }
+  }). catch(error => {
+    console.log(error)
+  })
+}
 
 const [id] = defineField('id');
 const [projectName] = defineField('projectName');
@@ -155,6 +181,14 @@ watch(props, () => {
   }
 })
 
+const formatDate = (date) => {
+  if (date) {
+    return moment(date).format("YYYY-MM-DD");
+  }
+
+  return "";
+}
+
 const onInvalidSubmit = ({ values, errors, results }) => {
   console.log(values)
   console.log(errors)
@@ -172,8 +206,8 @@ const onFormSubmit = handleSubmit(async values => {
     stageId: values.stageId,
     categoryId: values.categoryId,
     categoryOthersDescr: values.categoryOthersDescr,
-    startDate: values.startDate,
-    id: kawasanData.value.id,
+    startDate: formatDate(values.startDate),
+    id: projectData.value.id,
   }
 
   await projectStore.save(data).then(response => {
@@ -194,7 +228,7 @@ const onFormSubmit = handleSubmit(async values => {
 }, onInvalidSubmit)
 
 const onFormReset = () => {
-  kawasanData.value = structuredClone(toRaw(props.kawasanData))
+  projectData.value = structuredClone(toRaw(props.projectData))
   emit('update:isDialogVisible', false)
 }
 
@@ -202,55 +236,73 @@ const dialogModelValueUpdate = val => {
   emit('update:isDialogVisible', val)
 }
 
-const closeMe = () => {
-  emit('update:isDialogVisible', false)
-}
+// const closeMe = () => {
+//   emit('update:isDialogVisible', false)
+// }
+
+const mindate = computed(() => {
+  return stageId.value === 4 ? null : yesterday
+})
+
+const visible = computed({
+  get: () => props.isDialogVisible,
+  set: val => dialogModelValueUpdate(val)
+})
+
+onMounted(() => {
+  fetchStageSelectList();
+  fetchCategorySelectList();
+})
 </script>
 
 <template>
-    <Dialog v-model:visible="props.isDialogVisible" :modal="true" :style="{ width: '600px' }" :header="props.dialogTitle">
-        <Fluid>
-            <form @submit="onFormSubmit">
-                <div class="card flex flex-col gap-4">
-                    <div class="flex flex-col gap-2">
-                        <label for="projectId">Project Id</label>
-                        <InputText v-if="isEdit" id="projectId" type="text" v-model="id" readonly />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="projectName">Project Name</label>
-                        <Textarea id="projectName" type="text" v-model="projectName" />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="projectLocation">Project Location</label>
-                        <Textarea id="projectLocation" v-model="projectLocation" />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="projectDetails">Project Details</label>
-                        <Textarea id="projectDetails" v-model="projectDetails" />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="stageId">Stage</label>
-                        <Dropdown id="stageId" v-model="stageId" :options="stageSelectList" optionLabel="name" />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="categoryId">Category</label>
-                        <div v-for="category in categorySelectList" :key="category.id" class="flex items-center gap-2">
-                            <RadioButton v-model="categoryId" :inputId="category.id" name="categoryId" :value="category.name" />
-                            <label :for="category.id">{{ category.name }}</label>
-                        </div>
-                        <InputText v-if="categoryId===4" id="categoryOthersDescr" type="text" v-model="categoryOthersDescr" />
-                    </div>
-                    <div class="flex flex-col gap-2">
-                        <label for="startDate" required>Start Date (yyyy-mm-dd)</label>
-                        <DatePicker id="startDate" v-model="startDate" dateFormat="yy-mm-dd" />
-                    </div>
+    <Dialog v-model:visible="visible" :modal="true" :style="{ width: '600px' }" :header="props.dialogTitle">
+        <form>
+            <div class="card flex flex-col gap-4">
+                <div class="flex flex-col gap-2">
+                    <label for="projectId" class="font-bold ml-1">Project Id</label>
+                    <InputText v-if="isEdit" id="projectId" type="text" v-model="id" readonly />
                 </div>
-            </form>
-        </Fluid>
+                <div class="flex flex-col gap-2">
+                    <label for="projectName" class="font-bold ml-1">Project Name</label>
+                    <Textarea id="projectName" type="text" v-model="projectName" />
+                    <Message v-if="errors.projectName" severity="error" size="small" variant="simple">{{ errors.projectName }}</Message>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="projectLocation" class="font-bold ml-1">Project Location</label>
+                    <Textarea id="projectLocation" v-model="projectLocation" />
+                    <Message v-if="errors.projectLocation" severity="error" size="small" variant="simple">{{ errors.projectLocation }}</Message>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="projectDetails" class="font-bold ml-1">Project Details</label>
+                    <Textarea id="projectDetails" v-model="projectDetails" />
+                    <Message v-if="errors.projectDetails" severity="error" size="small" variant="simple">{{ errors.projectDetails }}</Message>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="stageId" class="font-bold ml-1">Stage</label>
+                    <Select id="stageId" v-model="stageId" :options="stageSelectList" option-label="name" option-value="id" placeholder="Select Stage" />
+                    <Message v-if="errors.stageId" severity="error" size="small" variant="simple">{{ errors.stageId }}</Message>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="categoryId" class="font-bold ml-1">Category</label>
+                    <div v-for="category in categorySelectList" :key="category.id" class="flex items-center gap-2">
+                        <RadioButton v-model="categoryId" :inputId="category.name" name="categoryId" :value="category.id" />
+                        <label :for="category.name">{{ category.name }}</label>
+                    </div>
+                    <InputText v-if="categoryId===4" id="categoryOthersDescr" type="text" v-model="categoryOthersDescr" />
+                    <Message v-if="errors.categoryOthersDescr" severity="error" size="small" variant="simple">{{ errors.categoryOthersDescr }}</Message>
+                </div>
+                <div class="flex flex-col gap-2">
+                    <label for="startDate" class="font-bold ml-1">Start Date (yyyy-mm-dd)</label>
+                    <DatePicker id="startDate" v-model="startDate" dateFormat="yy-mm-dd" :min-date="mindate" show-icon />
+                    <Message v-if="errors.startDate" severity="error" size="small" variant="simple">{{ errors.startDate }}</Message>
+                </div>
+            </div>
+        </form>
         <template #footer>
             <div class="flex justify-end gap-4">
-                <Button label="Cancel" icon="pi pi-times" severity="danger" @click="closeMe" />
-                <Button label="Save" icon="pi pi-check" severity="success" type="submit" :disabled="isSubmitting || isDisabled" :loading="isSubmitting" />
+                <Button label="Cancel" icon="pi pi-times" severity="danger" @click="onFormReset" />
+                <Button label="Save" icon="pi pi-check" severity="success" :disabled="isSubmitting || isDisabled" :loading="isSubmitting" @click="onFormSubmit" />
             </div>
         </template>
     </Dialog>

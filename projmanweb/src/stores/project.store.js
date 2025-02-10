@@ -1,5 +1,5 @@
-import { defineStore } from 'pinia';
 import api from '@/service/api';
+import { defineStore } from 'pinia';
 
 export const useProjectStore = defineStore('ProjectStore', {
     id: 'project',
@@ -7,8 +7,14 @@ export const useProjectStore = defineStore('ProjectStore', {
         fetchPagedList(params) {
             return api.post('/project/list', params);
         },
-        fetch(ids) {
-            return api.get(`project/${ids}`);
+        fetch(id) {
+            return api.get(`project/${id}`);
+        },
+        save(data) {
+            if (data.id) {
+                return api.put(`project`, data);
+            }
+            return api.post('project', data);
         }
     }
 });

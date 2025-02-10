@@ -13,6 +13,8 @@ builder.Services.ConfigureeApplication(builder.Configuration);
 builder.Services.ConfigureJwt();
 builder.Services.RegisterCors(builder.Configuration);
 
+builder.Services.AddDistributedMemoryCache();
+
 builder.Services.AddControllers();
 
 builder.Services.AddExceptionHandler<UnauthorizedExceptionHandler>();

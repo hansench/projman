@@ -1,4 +1,7 @@
-﻿namespace ProjMan.Application.Dtos;
+﻿using ProjMan.Application.JsonConverter;
+using System.ComponentModel;
+
+namespace ProjMan.Application.Dtos;
 
 public class ProjectUpdateDto
 {
@@ -14,6 +17,7 @@ public class ProjectUpdateDto
 
     public string CategoryOthersDescr { get; set; } = string.Empty;
 
+    [JsonConverter(typeof(DateTimeToDateConverter))]
     public DateTime StartDate { get; set; }
 
     public int Id { get; set; }

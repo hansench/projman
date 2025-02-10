@@ -1,4 +1,4 @@
-﻿namespace ProjMan.Application.Validation;
+﻿namespace ProjMan.Application.Behavior;
 
 public class ValidationPipelineBehavior<TRequest, TResponse>
     : IPipelineBehavior<TRequest, TResponse> where TRequest : IRequest<TResponse>
