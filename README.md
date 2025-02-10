@@ -12,3 +12,6 @@ This project showcases the CRUD operation using VueJs, ASP.NET Core Web API, and
 - Pinia
 - Vee-validate
 - Template use <a ref="https://github.com/primefaces/sakai-vue">sakai-vue</a>
+
+- ### Database
+  - PostgreSQL 16
