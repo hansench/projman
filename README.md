@@ -26,15 +26,19 @@ This project showcases the CRUD operation using VueJs, ASP.NET Core Web API, and
   - PostgreSQL 16
 
 <h2>Instalation</h2>
+
 - ### Database
+
   - Create database at your local server
   - Run script from folder **dbscript**
 
 - ### Back End
 
-  - Open solution Projman from folder **api**
+  - Open solution Projman from folder **api** using Visual Studio 2022
   - Setup connection string
   - Run the solution
 
 - ### Front End
-  - PostgreSQL 16
+  - Open folder **projmanweb** using Visual Studio Code
+  - install required library
+  - run the web
