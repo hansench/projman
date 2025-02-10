@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjMan.Infrastructure", "P
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjMan.Application", "ProjMan.Application\ProjMan.Application.csproj", "{F34F619A-88A6-421C-A76F-18EB63A97442}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ProjMan.Test", "ProjMan.Test\ProjMan.Test.csproj", "{885A0FD2-41B1-4DD9-ACCD-E9599A5DB1D2}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -29,10 +27,6 @@ Global
 		{F34F619A-88A6-421C-A76F-18EB63A97442}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F34F619A-88A6-421C-A76F-18EB63A97442}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F34F619A-88A6-421C-A76F-18EB63A97442}.Release|Any CPU.Build.0 = Release|Any CPU
-		{885A0FD2-41B1-4DD9-ACCD-E9599A5DB1D2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{885A0FD2-41B1-4DD9-ACCD-E9599A5DB1D2}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{885A0FD2-41B1-4DD9-ACCD-E9599A5DB1D2}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{885A0FD2-41B1-4DD9-ACCD-E9599A5DB1D2}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
