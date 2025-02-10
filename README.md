@@ -6,6 +6,7 @@ This project showcases the CRUD operation using VueJs, ASP.NET Core Web API, and
 
 <h2>Tech Stack</h2>
 <h5>Front End</h5>
+- ### Front End
 - VueJs 3
 - Vite
 - Axios
