@@ -11,4 +11,9 @@ public static class StringHelper
 
         return 0;
     }
+
+    public static string Enquote(this string input)
+    {
+        return $@"""{input}""";
+    }
 }

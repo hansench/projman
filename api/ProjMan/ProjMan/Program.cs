@@ -1,3 +1,4 @@
+using ProjMan;
 using ProjMan.Application;
 using ProjMan.Application.Exceptions.Handlers;
 using ProjMan.Infrastructure;
@@ -9,6 +10,8 @@ builder.Services.AddHttpContextAccessor();
 
 builder.Services.ConfigureInfrastructure(builder.Configuration);
 builder.Services.ConfigureeApplication(builder.Configuration);
+builder.Services.ConfigureJwt();
+builder.Services.RegisterCors(builder.Configuration);
 
 builder.Services.AddControllers();
 
@@ -35,6 +38,9 @@ await using (var app = builder.Build())
 
     app.UseHttpsRedirection();
     app.UseExceptionHandler();
+    app.UseStatusCodePages();
+
+    app.UseCors("Default");
 
     app.UseAuthentication();
     app.UseAuthorization();

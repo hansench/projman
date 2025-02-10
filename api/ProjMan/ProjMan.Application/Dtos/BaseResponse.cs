@@ -1,6 +1,4 @@
-﻿using System.Text.Json.Serialization;
-
-namespace ProjMan.Application.Dtos;
+﻿namespace ProjMan.Application.Dtos;
 
 public class BaseResponse
 {

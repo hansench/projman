@@ -1,5 +1,5 @@
-﻿using ProjMan.Application.Security;
-using ProjMan.Infrastructure.Database.Entities;
+﻿using ProjMan.Infrastructure.Database.Entities;
+using ProjMan.Infrastructure.Security;
 
 namespace ProjMan.Infrastructure.Database.Migrations;
 

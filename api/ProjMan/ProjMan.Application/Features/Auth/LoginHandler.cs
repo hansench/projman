@@ -1,6 +1,4 @@
-﻿using ProjMan.Application.Features.Auth.Dtos;
-
-namespace ProjMan.Application.Features.Auth;
+﻿namespace ProjMan.Application.Features.Auth;
 
 public class LoginHandler : IRequestHandler<LoginRequest, RowResponse<LoginUserDto>>
 {

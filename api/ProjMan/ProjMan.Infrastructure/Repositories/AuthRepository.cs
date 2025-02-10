@@ -1,8 +1,6 @@
-﻿using Microsoft.AspNetCore.Http;
-using Microsoft.EntityFrameworkCore;
-using ProjMan.Application.Features.Auth.Dtos;
-using ProjMan.Application.Security;
-using ProjMan.Infrastructure.Database.Entities;
+﻿using Microsoft.IdentityModel.Tokens;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
 
 namespace ProjMan.Infrastructure.Repositories;
 
@@ -12,13 +10,19 @@ public class AuthRepository : IAuthRepository
     private readonly ITokenGenerator _tokenGenerator;
     private readonly ProjManDbContext _dbContext;
     private readonly RefreshTokenSettings _refreshTokenSettings;
+    private readonly JwtSettings _jwtSettings;
 
-    public AuthRepository(ProjManDbContext dbContext, IPasswordHasher passwordHasher, ITokenGenerator tokenGenerator, IOptions<RefreshTokenSettings> options)
+    public AuthRepository(ProjManDbContext dbContext,
+        IPasswordHasher passwordHasher,
+        ITokenGenerator tokenGenerator,
+        IOptions<RefreshTokenSettings> options1,
+        IOptions<JwtSettings> options2)
     {
         _dbContext = dbContext;
         _passwordHasher = passwordHasher;
         _tokenGenerator = tokenGenerator;
-        _refreshTokenSettings = options.Value;
+        _refreshTokenSettings = options1.Value;
+        _jwtSettings = options2.Value;
     }
 
     public async Task<RowResponse<LoginUserDto>> LoginAsync(string username, string password)
@@ -47,6 +51,8 @@ public class AuthRepository : IAuthRepository
             {
                 throw new UnauthorizedAccessException(messageInvalid);
             }
+
+            ClearRefreshToken(user.Id);
 
             // generate refresh token
             var refreshToken = _tokenGenerator.CreateRefreshToken();
@@ -79,13 +85,20 @@ public class AuthRepository : IAuthRepository
     }
 
 
-    public async Task<RowResponse<LoginUserDto>> ExchangeRefreshTokenAsync(string username, string refreshToken)
+    public async Task<RowResponse<LoginUserDto>> ExchangeRefreshTokenAsync(string token, string refreshToken)
     {
         var response = new RowResponse<LoginUserDto>();
 
+        var userClaim = GetIdentifierFromExpiredToken(token);
+        if (userClaim == null)
+        {
+            throw new UnauthorizedAccessException("Invalid credentials");
+        }
+
+        var username = userClaim.Value.Trim().ToLowerInvariant();
+
         try
         {
-            username = username.Trim().ToLowerInvariant();
             var user = await _dbContext.AppUserDbSet
                 .SingleAsync(x => x.UserName == username && x.IsActive);
 
@@ -99,19 +112,20 @@ public class AuthRepository : IAuthRepository
                 throw new UnauthorizedAccessException("Invalid credentials.");
             }
 
+            ClearRefreshToken(user.Id);
+
             var newRefreshToken = _tokenGenerator.CreateRefreshToken();
-            await RemoveRefreshToken(user.Id, refreshToken);
             await AddRefreshToken(user.Id, newRefreshToken);
             await _dbContext.SaveChangesAsync();
 
-            var token = await _tokenGenerator.CreateJwtToken(user.Id, user.UserName, user.RoleId, user.FullName);
+            var newtoken = await _tokenGenerator.CreateJwtToken(user.Id, user.UserName, user.RoleId, user.FullName);
 
             var authorizedUser = new LoginUserDto
             {
                 UserId = user.Id,
                 UserName = user.UserName,
                 FullName = user.FullName,
-                Token = token,
+                Token = newtoken,
                 RefreshToken = refreshToken
             };
 
@@ -155,13 +169,45 @@ public class AuthRepository : IAuthRepository
     }
 
 
-    private async Task RemoveRefreshToken(int userId, string token)
+    private void ClearRefreshToken(int userId)
     {
-        var refreshToken = await _dbContext.AppUserRefreshTokenDbSet
-            .FirstOrDefaultAsync(x => x.UserId == userId && x.Token == token);
+        var refreshTokens = _dbContext.AppUserRefreshTokenDbSet
+            .Where(x => x.UserId == userId);
 
-        if (refreshToken == null) return;
+        foreach (var refreshToken in refreshTokens)
+        {
+            _dbContext.AppUserRefreshTokenDbSet.Remove(refreshToken);
+        }
+    }
 
-        _dbContext.AppUserRefreshTokenDbSet.Remove(refreshToken);
+
+    private Claim GetIdentifierFromExpiredToken(string token)
+    {
+        var tokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuerSigningKey = true,
+            IssuerSigningKey = _jwtSettings.SigningCredentials?.Key ?? throw new ArgumentNullException(),
+            ValidateIssuer = true,
+            ValidIssuer = _jwtSettings.Issuer,
+            ValidateAudience = true,
+            ValidAudience = _jwtSettings.Audience,
+            ValidateLifetime = false, // do not check for expiry date time
+            ClockSkew = TimeSpan.Zero
+        };
+
+        var tokenHandler = new JwtSecurityTokenHandler();
+        var principal = tokenHandler.ValidateToken(
+            token,
+            tokenValidationParameters,
+            out var securityToken);
+        var jwtSecurityToken = securityToken as JwtSecurityToken;
+        if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Contains(
+                SecurityAlgorithms.HmacSha256Signature,
+                StringComparison.InvariantCultureIgnoreCase))
+        {
+            throw new SecurityTokenException("Invalid token");
+        }
+
+        return principal.Claims.First(c => c.Type == ClaimTypes.NameIdentifier);
     }
 }

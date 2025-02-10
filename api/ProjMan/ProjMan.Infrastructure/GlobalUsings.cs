@@ -1,4 +1,15 @@
-﻿global using ProjMan.Infrastructure.Database;
-global using ProjMan.Application.Interfaces;
+﻿global using Microsoft.AspNetCore.Http;
+global using Microsoft.EntityFrameworkCore;
 global using Microsoft.Extensions.Options;
+global using Npgsql;
 global using ProjMan.Application.Dtos;
+global using ProjMan.Application.Repositories;
+global using ProjMan.Infrastructure.Constants;
+global using ProjMan.Infrastructure.Database;
+global using ProjMan.Infrastructure.Database.Entities;
+global using ProjMan.Infrastructure.Repositories;
+global using ProjMan.Infrastructure.Security;
+global using System.Data;
+global using System.Text;
+global using Dapper;
+global using ProjMan.Infrastructure.Helper;

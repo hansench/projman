@@ -1,7 +1,6 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
-using ProjMan.Application.Dtos;
 
 namespace ProjMan.Application.Exceptions.Handlers;
 

@@ -1,7 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
+﻿using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
-using ProjMan.Infrastructure.Database.Entities;
 
 namespace ProjMan.Infrastructure.Database;
 
@@ -41,9 +39,25 @@ public class ProjManDbContext : DbContext
             e.ToTable("AppUserRefreshToken");
             e.Property("Id").UseIdentityAlwaysColumn();
         });
+
+
+        modelBuilder.Entity<ProjectEntity>(e => {
+            e.ToTable("Project");
+            e.Property("Id").UseIdentityAlwaysColumn();
+            e.HasIndex("ProjectName");
+        });
+
+        modelBuilder.Entity<ProjectStageDetailEntity>(e => {
+            e.ToTable("ProjectStageDetail");
+            e.Property("Id").UseIdentityAlwaysColumn();
+        });
     }
 
     public DbSet<AppUserEntity> AppUserDbSet { get; set; }
 
     public DbSet<AppUserRefreshTokenEntity> AppUserRefreshTokenDbSet { get; set; }
+
+    public DbSet<ProjectEntity> ProjectDbSet { get; set; }
+
+    public DbSet<ProjectStageDetailEntity> ProjectStageDetailDbSet { get; set; }
 }

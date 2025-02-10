@@ -13,7 +13,7 @@ CREATE TABLE "AppUser"
 	"UpdatedUtc" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW()::TIMESTAMP)
 );
 
-CREATE TABLE "AppUserRefrehToken"
+CREATE TABLE "AppUserRefreshToken"
 (
     "Id" INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     "UserId" INT NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE "AppUserRefrehToken"
     "InsertedUtc" TIMESTAMP WITHOUT TIME ZONE NOT NULL DEFAULT (NOW()::TIMESTAMP),
     "ExpiredUtc" TIMESTAMP WITHOUT TIME ZONE NOT NULL,
     "IsActive" BOOLEAN NOT NULL DEFAULT(TRUE)
-)
+);
 
 
 CREATE TABLE "ProjectStage"
@@ -92,3 +92,21 @@ INSERT INTO "ProjectCategory" ("Name", "Descr", "InsertedUserId") VALUES ('Offic
 INSERT INTO "ProjectCategory" ("Name", "Descr", "InsertedUserId") VALUES ('Others', 'Category Others', 0);
 
 
+CREATE INDEX "ProjectCategory_ProjectName" ON public."Project"("ProjectName");
+CREATE INDEX "ProjectCategory_StageId" ON public."Project"("StageId");
+CREATE INDEX "ProjectCategory_CategoryId" ON public."Project"("CategoryId");
+
+
+CREATE VIEW "vwProject"
+AS
+SELECT p."Id"
+, p."ProjectName"
+, p."StageId"
+, ps."Name" AS "StageName"
+, p."CategoryId" 
+, pc."Name" AS "CategoryName"
+, p."CategoryOthersDescr" 
+, p."StartDate" 
+FROM "Project" p
+LEFT JOIN "ProjectStage" ps ON p."StageId" = ps."Id" 
+LEFT JOIN "ProjectCategory" pc ON p."CategoryId" = pc."Id";
