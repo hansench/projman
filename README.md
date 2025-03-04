@@ -43,8 +43,8 @@ This project showcases the CRUD operation using frontend VueJs, backend ASP.NET 
   - install required library
   - run the web
  
-Default User
-Email: admin@mymail.com
-Password: qwertyX@123
+<h5>Default User</h5>
+<h5>Email: admin@mymail.com</h5>
+<h5>Password: qwertyX@123</h5>
 
 
