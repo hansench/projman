@@ -2,7 +2,7 @@
 
 <h2>Project Management</h2>
 
-This project showcases the CRUD operation using VueJs, ASP.NET Core Web API, and database Postgresql.
+This project showcases the CRUD operation using frontend VueJs, backend ASP.NET Core Web API, and database Postgresql.
 
 <h2>Tech Stack</h2>
 
@@ -42,3 +42,9 @@ This project showcases the CRUD operation using VueJs, ASP.NET Core Web API, and
   - Open folder **projmanweb** using Visual Studio Code
   - install required library
   - run the web
+ 
+Default User
+Email: admin@mymail.com
+Password: qwertyX@123
+
+
